@@ -14,12 +14,14 @@ login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
 
+csrf = CsrfProtect()
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     Config.init_app(app)
-    CsrfProtect(app)
+    #CsrfProtect(app)
+    csrf.init_app(app)
 
     db.init_app(app)
     bootstrap.init_app(app)

@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {% block title %}
-    Blog_mini -{{ article.title }}
+    {{ article.title }} - {{ BlogInfo.query.first().title }}
 {% endblock %}
 
 {% block content %}
@@ -10,9 +10,9 @@
     {% include '_article_info.html' %}
     <hr>
     <div>
-        <p>
-            {{ article.content | safe }}
-        </p>
+        <div id="content-editormd-view">
+            <textarea id="append-content" style="display:none;">{{ article.content | safe }}</textarea>
+        </div>
     </div>
     <div class="article-add-info">
         <p>
@@ -45,13 +45,34 @@
 
 {% block stylesheet %}
     {{ super() }}
-    <link href="{{ url_for('static', filename='css/prism.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='editor.md-master/css/editormd.preview.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block script %}
     {{ super() }}
-    <script src="{{ url_for('static', filename='tinymce/js/tinymce/extentsion_self/codesimple_extentsion/prism.js') }}">
+    <script src="{{ url_for('static', filename='editor.md-master/editormd.js') }}"></script>
+    <script src="{{ url_for('static', filename='editor.md-master/lib/marked.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='editor.md-master/lib/prettify.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='editor.md-master/lib/raphael.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='editor.md-master/lib/underscore.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='editor.md-master/lib/sequence-diagram.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='editor.md-master/lib/flowchart.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='editor.md-master/lib/jquery.flowchart.min.js') }}"></script>
+
+    <script type="text/javascript">
+        var contentEditormdView;
+        $(function(markdown) {
+            contentEditormdView = editormd.markdownToHTML("content-editormd-view", {
+                htmlDecode      : "style,script,iframe",  // you can filter tags decode
+                emoji           : true,
+                taskList        : true,
+                tex             : true,  // 默认不解析
+                flowChart       : true,  // 默认不解析
+                sequenceDiagram : true  // 默认不解析
+            });
+        });
     </script>
+
     <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
     <script src="{{ url_for('static', filename='js/commentReply.js') }}"></script>
 {% endblock %}

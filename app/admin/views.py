@@ -2,6 +2,8 @@
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
+import time
+import os
 
 from datetime import datetime
 import json
@@ -16,7 +18,7 @@ from .forms import SubmitArticlesForm, ManageArticlesForm, DeleteArticleForm, \
     EditArticleTypeForm, AddArticleTypeNavForm, EditArticleNavTypeForm, SortArticleNavTypeForm, \
     CustomBlogInfoForm, AddBlogPluginForm, ChangePasswordForm, EditUserInfoForm
 from .. import db
-
+from .. import csrf
 
 @admin.route('/')
 @login_required
@@ -868,5 +870,18 @@ def edit_user_info():
 @admin.route('/help')
 @login_required
 def help():
-
     return render_template('admin/help_page.html')
+
+@csrf.exempt
+@admin.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        file = request.files['editormd-image-file']
+        filename = file.filename.split('.')
+        # minetype = f.content_type
+        type = filename[len(filename) - 1]
+        filename = time.strftime('%Y%m%d%H%M%S',time.localtime()) + '.' + type
+        file.save(os.path.join(os.path.abspath('app/static/upload/imgs/'), filename))
+        return json.dumps({"success":1, "message":"ok", "url": request.url_root + 'static/upload/imgs/' + filename})
+    else:
+        return json.dumps({"success":0, "message":"error"})
