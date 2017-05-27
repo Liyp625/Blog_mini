@@ -2,19 +2,26 @@
 from flask import render_template, request, current_app, redirect,\
     url_for, flash
 from . import main
-from ..models import Article, ArticleType, article_types, Comment, \
+from ..models import Article, ArticleType, ArticleTypeSetting, article_types, Comment, \
     Follow, User, Source, BlogView
 from .forms import CommentForm
 from .. import db
+from sqlalchemy import or_
+from flask.ext.login import current_user
 
 
 @main.route('/')
 def index():
-    BlogView.add_view(db)
+    if current_user.is_anonymous():
+        BlogView.add_view(db)
     page = request.args.get('page', 1, type=int)
-    pagination = Article.query.order_by(Article.create_time.desc()).paginate(
-            page, per_page=current_app.config['ARTICLES_PER_PAGE'],
-            error_out=False)
+#    pagination = Article.query.order_by(Article.create_time.desc()).paginate(
+    pagination = Article.query \
+        .join(ArticleType, Article.articleType_id == ArticleType.id) \
+        .join(ArticleTypeSetting, ArticleTypeSetting.id == ArticleType.setting_id) \
+        .filter(or_(ArticleTypeSetting.hide == False, ArticleTypeSetting.protected == True)) \
+        .order_by(Article.create_time.desc()) \
+        .paginate(page, per_page=current_app.config['ARTICLES_PER_PAGE'], error_out=False)
     articles = pagination.items
     return render_template('index.html', articles=articles,
                            pagination=pagination, endpoint='.index')
@@ -22,7 +29,8 @@ def index():
 
 @main.route('/article-types/<int:id>/')
 def articleTypes(id):
-    BlogView.add_view(db)
+    if current_user.is_anonymous():
+        BlogView.add_view(db)
     page = request.args.get('page', 1, type=int)
     pagination = ArticleType.query.get_or_404(id).articles.order_by(
             Article.create_time.desc()).paginate(
@@ -36,12 +44,20 @@ def articleTypes(id):
 
 @main.route('/article-sources/<int:id>/')
 def article_sources(id):
-    BlogView.add_view(db)
+    if current_user.is_anonymous():
+        BlogView.add_view(db)
     page = request.args.get('page', 1, type=int)
-    pagination = Source.query.get_or_404(id).articles.order_by(
-            Article.create_time.desc()).paginate(
-            page, per_page=current_app.config['ARTICLES_PER_PAGE'],
-            error_out=False)
+    # pagination = Source.query.get_or_404(id).articles.order_by(
+    #         Article.create_time.desc()).paginate(
+    #         page, per_page=current_app.config['ARTICLES_PER_PAGE'],
+    #         error_out=False)
+    pagination = Article.query \
+        .filter(Article.source_id == id) \
+        .join(ArticleType, Article.articleType_id == ArticleType.id) \
+        .join(ArticleTypeSetting, ArticleTypeSetting.id == ArticleType.setting_id) \
+        .filter(or_(ArticleTypeSetting.hide == False, ArticleTypeSetting.protected == True)) \
+        .order_by(Article.create_time.desc()) \
+        .paginate(page, per_page=current_app.config['ARTICLES_PER_PAGE'], error_out=False)
     articles = pagination.items
     return render_template('index.html', articles=articles,
                            pagination=pagination, endpoint='.article_sources',
@@ -50,7 +66,8 @@ def article_sources(id):
 
 @main.route('/article-detials/<int:id>', methods=['GET', 'POST'])
 def articleDetails(id):
-    BlogView.add_view(db)
+    if current_user.is_anonymous():
+        BlogView.add_view(db)
     form = CommentForm(request.form, follow=-1)
     article = Article.query.get_or_404(id)
 
@@ -83,7 +100,8 @@ def articleDetails(id):
         page, per_page=current_app.config['COMMENTS_PER_PAGE'],
         error_out=False)
     comments = pagination.items
-    article.add_view(article, db)
+    if current_user.is_anonymous():
+        article.add_view(article, db)
     return render_template('article_detials.html', User=User, article=article,
                            comments=comments, pagination=pagination, page=page,
                            form=form, endpoint='.articleDetails', id=article.id)

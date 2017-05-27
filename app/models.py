@@ -339,6 +339,20 @@ class Article(db.Model):
         db.session.add(article)
         db.session.commit()
 
+    @staticmethod
+    def num_of_hidden_blog(source_id = -1):
+        if source_id != -1 :
+            return Article.query \
+                .filter(Article.source_id == source_id) \
+                .join(ArticleType, Article.articleType_id == ArticleType.id) \
+                .join(ArticleTypeSetting, ArticleTypeSetting.id == ArticleType.setting_id) \
+                .filter(ArticleTypeSetting.hide == True, ArticleTypeSetting.protected == False).count()
+        else:
+            return Article.query \
+                .join(ArticleType, Article.articleType_id == ArticleType.id) \
+                .join(ArticleTypeSetting, ArticleTypeSetting.id == ArticleType.setting_id) \
+                .filter(ArticleTypeSetting.hide == True, ArticleTypeSetting.protected == False).count()
+
     def __repr__(self):
         return '<Article %r>' % self.title
 
