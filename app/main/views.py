@@ -12,7 +12,7 @@ from flask.ext.login import current_user
 
 @main.route('/')
 def index():
-    if current_user.is_anonymous():
+    if current_user.is_anonymous:
         BlogView.add_view(db)
     page = request.args.get('page', 1, type=int)
 #    pagination = Article.query.order_by(Article.create_time.desc()).paginate(
@@ -29,7 +29,7 @@ def index():
 
 @main.route('/article-types/<int:id>/')
 def articleTypes(id):
-    if current_user.is_anonymous():
+    if current_user.is_anonymous:
         BlogView.add_view(db)
     page = request.args.get('page', 1, type=int)
     pagination = ArticleType.query.get_or_404(id).articles.order_by(
@@ -44,7 +44,7 @@ def articleTypes(id):
 
 @main.route('/article-sources/<int:id>/')
 def article_sources(id):
-    if current_user.is_anonymous():
+    if current_user.is_anonymous:
         BlogView.add_view(db)
     page = request.args.get('page', 1, type=int)
     # pagination = Source.query.get_or_404(id).articles.order_by(
@@ -66,7 +66,7 @@ def article_sources(id):
 
 @main.route('/article-detials/<int:id>', methods=['GET', 'POST'])
 def articleDetails(id):
-    if current_user.is_anonymous():
+    if current_user.is_anonymous:
         BlogView.add_view(db)
     form = CommentForm(request.form, follow=-1)
     article = Article.query.get_or_404(id)
