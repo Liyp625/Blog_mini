@@ -107,3 +107,20 @@ def articleDetails(id):
                            form=form, endpoint='.articleDetails', id=article.id)
     # page=page, this is used to return the current page args to the
     # disable comment or enable comment endpoint to pass it to the articleDetails endpoint
+
+@main.route('/article-search/<string:content>/')
+def articleSearch(content):
+    if current_user.is_anonymous:
+        BlogView.add_view(db)
+    page = request.args.get('page', 1, type=int)
+    pagination = Article.query \
+        .filter(or_(Article.title.like('%' + content + '%'), Article.summary.like('%' + content + '%'))) \
+        .join(ArticleType, Article.articleType_id==ArticleType.id) \
+        .join(ArticleTypeSetting, ArticleType.setting_id==ArticleTypeSetting.id) \
+        .filter(or_(ArticleTypeSetting.hide==False, ArticleTypeSetting.protected==True)) \
+        .order_by(Article.create_time.desc()).paginate(
+        page, per_page=current_app.config['ARTICLES_PER_PAGE'],
+        error_out=False)
+    articles = pagination.items
+    return render_template('index.html', articles=articles,
+                           pagination=pagination, endpoint='.articleSearch', content=content)

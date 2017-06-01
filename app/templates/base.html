@@ -106,6 +106,12 @@
                     {% endblock %}
                 </div>
                 <div class="col-md-4 blog_nav">
+                    <div class="entry-box">
+                        <input type="text" id="searchInput" style="width: 190px;" value="{{ content }}">
+                        <button id="searchBtn" class="btn btn-primary" style="height:26px;width:82px;padding:0px;margin-top:-3px;">
+                            <span class="glyphicon glyphicon-search"></span>站内检索
+                        </button>
+                    </div>
                     {% block blog_nav_plugin %}
                         {% for plugin in Plugin.query.order_by(Plugin.order.asc()).all() %}
                             {% if plugin.disabled != True %}
@@ -175,6 +181,12 @@
                 }
             }
         })
+    $().ready(function(){
+        $("#searchBtn").on("onclick", function () {
+           var content = $("#searchInput").val();
+            window.location.href='/article-search/' + content;
+        });
+    });
     </script>
     {{ moment.include_moment() }}
     {{ moment.lang('zh-cn') }}
